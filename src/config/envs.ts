@@ -1,30 +1,31 @@
 import 'dotenv/config';
-import * as Joi from 'joi';
+import * as joi from 'joi';
 
 interface EnvVars {
-    PORT: number,
-    PRODUCTS_MICROSERVICE_HOST: string,
-    PRODUCTS_MICROSERVICE_PORT: number
+  PORT: number;
+  NATS_SERVERS: string[];
 }
 
-const envsSchema = Joi.object({
-    PORT: Joi.number().required(),
-    PRODUCTS_MICROSERVICE_HOST: Joi.string().required(),
-    PRODUCTS_MICROSERVICE_PORT: Joi.number().required()
+const envsSchema = joi.object({
+  PORT: joi.number().required(),
+  NATS_SERVERS: joi.array().items(joi.string()).required()
 })
-    .unknown(true);
+  .unknown(true);
 
-const { error, value } = envsSchema.validate(process.env);
+const { error, value } = envsSchema.validate({
+  ...process.env,
+  NATS_SERVERS: process.env.NATS_SERVERS?.split(',')
+});
+
 
 if (error) {
-    throw new Error(`Config validation error: ${error.message}`);
-
+  throw new Error(`Config validation error: ${error.message}`);
 }
 
 const envVars: EnvVars = value;
 
+
 export const envs = {
-    port: envVars.PORT,
-    producsMicroserviceHost: envVars.PRODUCTS_MICROSERVICE_HOST,
-    producsMicroservicePort: envVars.PRODUCTS_MICROSERVICE_PORT
+  port: envVars.PORT,
+  natsServers: envVars.NATS_SERVERS
 }
